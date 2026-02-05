@@ -7,7 +7,10 @@ export function buildTargetUrl(row) {
 
     const base = "https://axis.ehr.com/en-US/survey-setup/surveys/48";
 
-    if (tableName === "SUBMISSIONGRANT" || tableName === "SUBMISSIONCOMPANY") {
+    if (tableName === "SUBMISSIONGRANT" ||
+        tableName === "SUBMISSIONCOMPANY" ||
+        tableName === "SUBMISSIONUNIT" ||
+        tableName === "COMPANYDATA") {
         return `${base}/organization/${encodeURIComponent(elementId)}`;
     }
 
