@@ -8,9 +8,10 @@ export async function ensureLoggedIn(ctx) {
 
     await page.goto(config.baseUrl, { waitUntil: "domcontentloaded" });
 
-    // ✅ if we can see strong marker quickly, we're inside
+    // quick check: short timeout to detect already-authenticated state
+    const shortTimeout = Number(config.timeoutMs || config.TIMEOUT_MS) || 3000;
     try {
-        await strong.waitFor({ state: "visible", timeout: config.timeoutMs });
+        await strong.waitFor({ state: "visible", timeout: shortTimeout });
         console.log("🔓 Inside app (authenticated).");
         await context.storageState({ path: config.storageState });
         return;
@@ -19,18 +20,25 @@ export async function ensureLoggedIn(ctx) {
     const urlNow = page.url();
     const hostNow = new URL(urlNow).host;
 
-    // ✅ only treat as SSO if actually on auth host
+    // If on the SSO host, wait for the user to complete login (no timeout)
     if (hostNow.includes("auth.ehr.com")) {
-        console.log("🔐 On SSO. Please complete login/MFA...");
+        console.log("🔐 On SSO. Please complete login/MFA in the opened browser — waiting until you're back in the app...");
         console.log("SSO URL:", urlNow);
 
+        // wait for navigation back to the app host (no timeout)
         await page.waitForFunction(
             (expectedHost) => location.host === expectedHost,
-            { timeout: 0 },
-            new URL(config.baseUrl).host
+            new URL(config.baseUrl).host,
+            { timeout: 0 }
         );
 
-        await strong.waitFor({ state: "visible", timeout: 0 });
+        console.log("🔁 Returned to app host after SSO, navigating to baseUrl to ensure correct start page...");
+        // navigate back to baseUrl (user may be redirected to a previous task)
+        await page.goto(config.baseUrl, { waitUntil: "domcontentloaded" });
+
+        // wait for the app's inside marker (use configured timeout)
+        const waitTimeout = Number(config.TIMEOUT_MS) || 30000;
+        await strong.waitFor({ state: "visible", timeout: waitTimeout });
 
         console.log("✅ Login completed – inside app.");
         await context.storageState({ path: config.storageState });

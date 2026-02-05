@@ -31,7 +31,6 @@ async function main() {
 
     console.log("📄 Reading Excel:", excelPath);
     const { rows } = readExcel(excelPath);
-
     await runFromExcel(ctx, rows);
 
     await ctx.context.storageState({ path: ctx.config.storageState });

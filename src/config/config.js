@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { tr } from "zod/locales";
 dotenv.config();
 
 export function getConfig() {
@@ -12,7 +13,10 @@ export function getConfig() {
         edgeExe: process.env.EDGE_EXE || "",
 
         storageState: process.env.STORAGE_STATE || "state/storage.json",
-        username: process.env.USERNAME || ""
+        username: process.env.USERNAME || "",
+
+        task: process.env.TASK || "re-approve", // re-approve | re-approve translation | edit translation | edit applicabilities 
+        translationLanguage: process.env.TRANSLATION_LANGUAGE || "English (Default)",
     };
 
     return cfg;
