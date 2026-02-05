@@ -42,8 +42,6 @@ export async function runOne(ctx) {
         console.log(`Field: Name: ${fieldName ?? ""}`);
         console.log(`Task: ${task}`);
         console.log(`Status: ${statusText}`);
-        console.log("...actions to be done");
-
         // --- end log block ---
 
         // read input value (inputs have no textContent)
@@ -51,8 +49,8 @@ export async function runOne(ctx) {
         const pageFieldName = (await fieldLoc.inputValue()).trim();
         console.log("Field name on page:", `"${pageFieldName}"`);
 
-        if (fieldName && normalize(pageFieldName) !== normalize(String(fieldName))
-        ) {
+        if (fieldName && normalize(pageFieldName) !== normalize(String(fieldName))) {
+            ctx.state.status = "fieldName dont match";
             markRunning(ctx, `Field name mismatch — page="${pageFieldName}" expected="${fieldName}"`);
             console.log("Skipping row due to field name mismatch.");
             return;
@@ -60,20 +58,28 @@ export async function runOne(ctx) {
 
         markRunning(ctx, "Field name matches, continuing...");
 
-        if (task === "re-approve" && statusText !== "approved") {
-            console.log("Skipping re-approve: element not Approved.");
+        // handle non-approved statuses for global tracking
+        const st = normalize(statusText);
+        if (st !== "approved") {
+            if (st.includes("draft")) ctx.state.status = "Draft";
+            else if (st.includes("pending")) ctx.state.status = "Pending";
+            else ctx.state.status = "Not Approve";
+
+            markRunning(ctx, `Skipping: status is ${statusText}`);
+            console.log(`Skipping row: status "${statusText}"`);
             return;
         }
 
         switch (task) {
             case "re-approve":
+                ctx.state.status = "Re-Approve";
                 console.log("Re-approving element...");
                 break;
             case "re-approve translation":
+                ctx.state.status = "Re-Approve";
                 console.log("Re-approving translation...");
                 break;
             case "edit translation":
-                console.log("Editing translation...");
                 await editTranslation(ctx, tab);
                 break;
             case "edit applicabilities":
@@ -82,8 +88,6 @@ export async function runOne(ctx) {
             default:
                 throw new Error(`Unknown task: ${task}`);
         }
-
-
 
     } finally {
         console.log("Row Finish");

@@ -5,8 +5,9 @@ import {
     markSuccess,
     markFailed,
 } from "./statusTracker.js";
+import { writeStatusesToExcel } from "./writeStatusToExcel.js";
 
-export async function runFromExcel(ctx, rows) {
+export async function runFromExcel(ctx, rows, excelPath) {
     console.log(`📄 Total rows: ${rows.length}`);
 
     ctx.state.results = []; // collect final results
@@ -40,4 +41,15 @@ export async function runFromExcel(ctx, rows) {
     }
 
     console.log("🎉 Processing finished.");
+
+
+    // write statuses back if path provided
+    if (excelPath) {
+        try {
+            writeStatusesToExcel(excelPath, ctx.state.results);
+            console.log("✅ Status column updated in Excel.");
+        } catch (e) {
+            console.warn("Could not write statuses to Excel:", e.message);
+        }
+    }
 }

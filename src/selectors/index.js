@@ -18,4 +18,6 @@ export const ELEMENTS = {
     BTN_SAVE_CONTAINER: "#btn-save-element-properties",
     BTN_APPROVE_CONTAINER: "#btn-approve",
     BTN_SUBMIT_REVIEW_CONTAINER: "#btn-submit-for-approval",
+
+    TABLE_SELECTOR: "#mat-tab-group-0-content-1 > div > div > ss-element-applicabilities > form > div > table"
 };

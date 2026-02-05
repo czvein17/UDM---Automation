@@ -31,10 +31,10 @@ async function main() {
 
     console.log("📄 Reading Excel:", excelPath);
     const { rows } = readExcel(excelPath);
-    await runFromExcel(ctx, rows);
+    await runFromExcel(ctx, rows, excelPath);
 
     await ctx.context.storageState({ path: ctx.config.storageState });
-    // await browser.close();
+
 }
 
 main().catch((e) => {
