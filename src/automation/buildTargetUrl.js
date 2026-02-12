@@ -7,14 +7,14 @@ export function buildTargetUrl(row) {
 
     const base = "https://axis.ehr.com/en-US/survey-setup/surveys/48";
 
-    if (tableName === "SUBMISSIONGRANT" ||
-        tableName === "SUBMISSIONCOMPANY" ||
+    if (tableName === "SUBMISSIONCOMPANY" ||
         tableName === "SUBMISSIONUNIT" ||
+        tableName === "SUBMISSIONCONTACT" ||
         tableName === "COMPANYDATA") {
         return `${base}/organization/${encodeURIComponent(elementId)}`;
     }
 
-    if (tableName === "SUBMISSIONINCUMBENT") {
+    if (tableName === "SUBMISSIONINCUMBENT" || tableName === "SUBMISSIONGRANT") {
         return `${base}/incumbent/${encodeURIComponent(elementId)}`;
     }
 

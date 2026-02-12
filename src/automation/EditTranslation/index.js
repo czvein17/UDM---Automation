@@ -11,6 +11,7 @@ export async function editTranslation(ctx, tab, elementId) {
     await goToApplicabilitiesTab(ctx, tab);
     await selectLanguage(ctx, tab, ctx?.config?.TRANSLATION_LANGUAGE || ctx?.config?.translationLanguage);
 
+
     const delayMs = Number(ctx?.config?.SLOW_UI_DELAY_MS || 3000);
     if (delayMs > 0) {
         console.log(`Waiting ${delayMs}ms for UI to settle...`);

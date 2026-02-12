@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "node src/index.js",
-    "dev:node": "node src/index.js",
+    "dev:node-login": "node src/index.js login",
+    "dev:node": "node src/index.js run",
     "dev:bun": "bun run src/index.js",
     "start": "node src/index.js"
   },

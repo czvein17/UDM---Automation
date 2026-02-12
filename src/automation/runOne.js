@@ -3,6 +3,7 @@ import { buildTargetUrl } from "./buildTargetUrl.js";
 import { ELEMENTS } from "../selectors/index.js";
 import { detectStatus } from "../utils/detectStatus.js";
 import { editTranslation } from "./EditTranslation/index.js";
+import { openTranslation } from "./OpenTranslation/index.js";
 
 function getFirst(row, keys = []) {
     for (const k of keys) {
@@ -68,7 +69,7 @@ export async function runOne(ctx) {
             markRunning(ctx, `Skipping: status is ${statusText}`);
             console.log(`Skipping row: status "${statusText}"`);
             return;
-        }
+        };
 
         switch (task) {
             case "re-approve":
@@ -82,6 +83,9 @@ export async function runOne(ctx) {
             case "edit translation":
                 await editTranslation(ctx, tab);
                 break;
+            case "open-translation": {
+                await openTranslation(ctx, tab)
+            };
             case "edit applicabilities":
                 console.log("Editing applicabilities...");
                 break;

@@ -24,7 +24,7 @@ export async function runFromExcel(ctx, rows, excelPath) {
         try {
             await runOne(ctx);
 
-            markSuccess(ctx, "Row completed successfully");
+            // markSuccess(ctx, "Row completed successfully");
             console.log(`✅ Row ${i + 1} SUCCESS`);
         } catch (err) {
             markFailed(ctx, err, "Row failed during automation");
