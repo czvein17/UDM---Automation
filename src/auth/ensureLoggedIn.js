@@ -1,14 +1,18 @@
-import { mkdirSync } from "node:fs";
+import { mkdirSync } from "fs";
 
 export async function ensureLoggedIn(ctx) {
     const { page, context, config } = ctx;
 
-    const STRONG_INSIDE = '#axis-main-content > ss-app > div > div > ss-survey-cycle > div';
+    const APP_HOST = new URL(config.baseUrl).host;
+
+    // ✅ Your inside-app marker (keep yours)
+    const STRONG_INSIDE =
+        "#axis-main-content > ss-app > div > div > ss-survey-cycle > div";
     const strong = page.locator(STRONG_INSIDE).first();
 
     await page.goto(config.baseUrl, { waitUntil: "domcontentloaded" });
 
-    // quick check: short timeout to detect already-authenticated state
+    // quick check: already logged in?
     const shortTimeout = Number(config.timeoutMs || config.TIMEOUT_MS) || 3000;
     try {
         await strong.waitFor({ state: "visible", timeout: shortTimeout });
@@ -17,26 +21,50 @@ export async function ensureLoggedIn(ctx) {
         return;
     } catch { }
 
-    const urlNow = page.url();
-    const hostNow = new URL(urlNow).host;
+    // ✅ Treat these as SSO/IdP pages
+    const SSO_HOSTS = new Set([
+        "auth.ehr.com",
+        "login.microsoftonline.com",
+        "login.microsoft.com",
+        "aadcdn.msauth.net",
+        "aadcdn.msftauth.net",
+    ]);
 
-    // If on the SSO host, wait for the user to complete login (no timeout)
-    if (hostNow.includes("auth.ehr.com")) {
-        console.log("🔐 On SSO. Please complete login/MFA in the opened browser — waiting until you're back in the app...");
+    const urlNow = page.url();
+    let hostNow = "";
+    try {
+        hostNow = new URL(urlNow).host;
+    } catch {
+        hostNow = "";
+    }
+
+    const isSSOPage =
+        hostNow === "" ||
+        hostNow.includes("auth.ehr.com") ||
+        hostNow.includes("microsoftonline.com") ||
+        hostNow.includes("microsoft.com") ||
+        SSO_HOSTS.has(hostNow);
+
+    if (isSSOPage) {
+        console.log("🔐 SSO detected. Please complete login/MFA in the opened browser.");
         console.log("SSO URL:", urlNow);
 
-        // wait for navigation back to the app host (no timeout)
-        await page.waitForFunction(
-            (expectedHost) => location.host === expectedHost,
-            new URL(config.baseUrl).host,
+        // ✅ Wait until we're back to the app host (no timeout)
+        await page.waitForURL(
+            (u) => {
+                try {
+                    return new URL(u.toString()).host === APP_HOST;
+                } catch {
+                    return false;
+                }
+            },
             { timeout: 0 }
         );
 
-        console.log("🔁 Returned to app host after SSO, navigating to baseUrl to ensure correct start page...");
-        // navigate back to baseUrl (user may be redirected to a previous task)
+        console.log("🔁 Returned to app host. Navigating to baseUrl to ensure correct start page...");
         await page.goto(config.baseUrl, { waitUntil: "domcontentloaded" });
 
-        // wait for the app's inside marker (use configured timeout)
+        // ✅ Now wait for inside marker (normal timeout)
         const waitTimeout = Number(config.TIMEOUT_MS) || 30000;
         await strong.waitFor({ state: "visible", timeout: waitTimeout });
 
@@ -45,11 +73,11 @@ export async function ensureLoggedIn(ctx) {
         return;
     }
 
-    // Otherwise: likely wrong marker for this page
+    // Otherwise: unexpected page
     mkdirSync("artifacts", { recursive: true });
     await page.screenshot({ path: "artifacts/inside_marker_missing.png", fullPage: true });
 
     throw new Error(
-        `Authenticated check failed: not on SSO host, but inside marker not found. Current URL=${urlNow}. Screenshot saved: artifacts/inside_marker_missing.png`
+        `Authenticated check failed: not on recognized SSO page, and inside marker not found. Current URL=${urlNow}. Screenshot saved: artifacts/inside_marker_missing.png`
     );
 }
