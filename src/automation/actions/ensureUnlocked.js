@@ -44,8 +44,26 @@ export async function ensureUnlocked(ctx, tab) {
 
     if (clicked) {
         await tab.waitForSelector(dialogSelector, { state: "detached", timeout }).catch(() => { });
-        console.log("✅ Unlock confirmed (via overlay eval).");
+        console.log("✅ Unlock confirmed (via overlay eval). Waiting for UI to update...");
+
+        // After unlocking the UI should update: unlock control should disappear and save/approve should appear.
+        try {
+            await tab.waitForSelector(ELEMENTS.BTN_UNLOCK_CONTAINER, { state: 'detached', timeout }).catch(() => { });
+        } catch (e) {
+            // ignore
+        }
+
+        // Wait for either Save or Approve button to become visible as a sign the UI is ready.
+        try {
+            await Promise.race([
+                tab.waitForSelector(ELEMENTS.BTN_SAVE_CONTAINER, { state: 'visible', timeout }),
+                tab.waitForSelector(ELEMENTS.BTN_APPROVE_CONTAINER, { state: 'visible', timeout })
+            ]).catch(() => { });
+        } catch (e) {
+            // ignore
+        }
+
+        console.log("UI update wait complete (unlock flow).");
         return "unlocked";
     }
-
 }

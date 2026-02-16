@@ -4,6 +4,7 @@ import { ELEMENTS } from "../selectors/index.js";
 import { detectStatus } from "../utils/detectStatus.js";
 import { editTranslation } from "./EditTranslation/index.js";
 import { openTranslation } from "./OpenTranslation/index.js";
+import { addApplicabilities } from "./AddApplicabilities/index.js";
 
 function getFirst(row, keys = []) {
     for (const k of keys) {
@@ -86,8 +87,9 @@ export async function runOne(ctx) {
             case "open-translation": {
                 await openTranslation(ctx, tab)
             };
-            case "edit applicabilities":
-                console.log("Editing applicabilities...");
+            case "edit-applicabilities":
+                // console.log("Editing applicabilities...");
+                await addApplicabilities(ctx, tab)
                 break;
             default:
                 throw new Error(`Unknown task: ${task}`);
